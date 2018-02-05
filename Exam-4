@@ -1,0 +1,713 @@
+#lang racket
+(require csc151)
+(require csc151/trees)
+(require csc151/counters)
+(require rackunit)
+(require rackunit/text-ui)
+
+;;; File:
+;;;   977441.rkt
+;;; Authors:
+;;;   The student currently referred to as 977441
+;;;   Titus Klinge
+;;;   Samuel A. Rebelsky
+;;; Contents:
+;;;   Code and solutions for Exam 4 2017F
+;;; Citations:
+;;;
+
+;; +---------+--------------------------------------------------------
+;; | Grading |
+;; +---------+
+
+;; This section is for the grader's use.
+
+;; Problem 1: 8
+;; Problem 2: 10
+;; Problem 3: 10
+;; Problem 4: 9
+;; Problem 5: 10
+;;           ----
+;;     Total: 47
+
+;;    Scaled: 94
+;;    Errors: 5
+;;     Times: 2
+;;          :
+;;          :
+;;          :
+;;           ----
+;;     Total: 101
+
+;; +----------+-------------------------------------------------------
+;; | Prologue |
+;; +----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+; 2017-11-30    21:33   22:21   48mins  Prologue Completed and Submitted
+; Time Spent: 
+;  48mins
+;; +-----------+------------------------------------------------------
+;; | Problem 1 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+; 2017-12-02    14:30   15:10   40mins  Part 'a' Completed
+;                                       Part 'b' Completed
+; 2017-12-03    20:20   20:25   5mins   Examples/Tests  
+;                                       Problem Solved
+; Time Spent: 
+;  40mins
+; Citations:
+
+; Supplied Documentation and Code:
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Description
+;  - Great!
+;
+; Rewritten Code
+;  - Although your list-set-one is much more efficient, it is
+;    significantly different from the original rather than just fixing
+;    the inefficiencies (-2)
+; ===================================================================
+
+;;; Procedures:
+;;;   list-set-one
+;;;   list-set-two
+;;; Parameters:
+;;;   lst, a list
+;;;   pos, a non-negative integer
+;;;   val, a Scheme value
+;;; Purpose:
+;;;   Create a new version of lst with val at the specified position.
+;;; Produces:
+;;;   newlst, a list
+;;; Preconditions:
+;;;   0 <= pos < (length lst)
+;;; Postconditions:
+;;;   * (length newlst) = (length lst)
+;;;   * (list-ref newlst pos) = val
+;;;   * For all i, 0 <= i < (length lst) and i != pos,
+;;;     (list-ref newlst pos) = (list-ref lst pos)
+(define list-set-one
+  (lambda (lst pos val)
+    (letrec ([kernel
+              (lambda (index lst1 pos1 val1)
+                (cond
+                  [(= index (length lst))
+                   null]
+                  [(= index pos)
+                   (cons val (kernel (increment index) lst pos val))]
+                  [else
+                   (cons (list-ref lst index)
+                         (kernel (increment index) lst pos val))]))])
+      (kernel 0 lst pos val))))
+
+(define list-set-two
+  (lambda (lst pos val)
+    (let kernel ([so-far null]
+                 [remaining lst])
+      (cond
+        [(null? remaining)
+         so-far]
+        [(equal? (length so-far) pos)
+         (kernel (append so-far (list val))
+                 (cdr remaining))]
+        [else
+         (kernel (append so-far (list (car remaining)))
+                 (cdr remaining))]))))
+
+
+;; Solution:
+
+; a.
+
+;'list-set-one'
+
+;;The first observation about this procedure is the addition of redundant parameters in the local
+;;'letrec' procedure namely 'lst1', 'pos1' and 'val1', these values remain constant and so can be
+;;directly accessed through the parameters of the 'list-set-one' procedure.
+
+;;The second inefficiency is the repeated use of the 'list-ref' procedure. This can be ommited
+;;by extracting the current element using the 'car' operation and then updating the list using the
+;;'cdr' operation and naming it 'remaining' instead of 'lst1'.
+
+;;Third, the 'kernel' procedure is being called as times as the length of the list, even after the
+;;'val' has been inserted in its specified 'pos', this can be omitted by updating the list using 'cdr'
+;;and simply returning the '(cons val remaining)' instead of calling the 'kernal' when 'index = pos'.
+
+;;Lastly, a final difference in efficiency can be made  by not calling the 'length' procedure repeatedly,
+;;instead, check if the 'remaining' is a null list [(null? remaining)]. 
+
+
+;'list-set-two'
+
+;;The first inefficieny spotted is the use of the 'equal?' procedure instead of the '=' operation since
+;;we are only comparing integers.
+
+;;Secondly the repeated call of the 'length' procedure on the 'so-far' list can be omitted by adding
+;;another parameter to our named let and call it 'index' to keep track of the length. This would also
+;;omit the repeated use of the 'list' procedure on val or the '(car remaining)'
+
+;;Third, the use of the 'append' procedure which can be switch with the a call to 'cons'.
+;;The only difference will be that the 'so'far' list would be generated in reverse order,
+;;therefore using the 'reverse' procedure when returning the 'so-far' list or when the
+;;'index' is the same as 'pos' would fix the problem.
+
+
+
+; b.
+
+(define list-set-one-fixed
+  (lambda (lst pos val)
+    (letrec ([kernel
+              (lambda (index remaining)
+                (cond
+                  [(null? remaining)
+                   null]
+                  [(= index pos)
+                   (cons val (cdr remaining))]
+                  [else
+                   (cons (car remaining)
+                         (kernel (+ index 1) (cdr remaining)))]))])
+      (kernel 0 lst))))
+
+(define list-set-two-fixed
+  (lambda (lst pos val)
+    (let kernel ([so-far null]
+                 [remaining lst]
+                 [index 0])
+      (cond
+        [(null? remaining)
+         (reverse so-far)]
+        [(= index pos)
+         (append (reverse so-far) (cons val (cdr remaining)))]
+        [else
+         (kernel (cons (car remaining) so-far)
+                 (cdr remaining)
+                 (+ index 1))]))))
+
+
+; Examples/Tests:
+(define some-animals (list "aardvark" "baboon" "chinchilla"))
+
+;;'list-set-one-fixed' Tests:
+
+;;> (list-set-one-fixed some-animals -1 "zebra")
+;;'("aardvark" "baboon" "chinchilla")
+;;
+;;> (list-set-one-fixed some-animals 0 "zebra")
+;;'("zebra" "baboon" "chinchilla")
+;;
+;;> (list-set-one-fixed some-animals 1 "zebra")
+;;'("aardvark" "zebra" "chinchilla")
+;;
+;;> (list-set-one-fixed some-animals 2 "zebra")
+;;'("aardvark" "baboon" "zebra")
+;;
+;;> (list-set-one-fixed some-animals 3 "zebra")
+;;'("aardvark" "baboon" "chinchilla")
+;;
+;;> (list-set-one-fixed (list 1 3 4 "hello" "universe" 'and 'galaxy) 4 'world)
+;;'(1 3 4 "hello" world and galaxy)
+;;
+;;> (list-set-one-fixed (list 1 3 4 "hello" "universe" 'and 'galaxy) 7 'world)
+;;'(1 3 4 "hello" "universe" and galaxy)
+;;
+;;> (list-set-one-fixed (list) 7 'world)
+;;'()
+
+;;'list-set-two-fixed' Tests:
+
+;;> (list-set-two-fixed some-animals -1 "zebra")
+;;'("aardvark" "baboon" "chinchilla")
+;;
+;;> (list-set-two-fixed some-animals 0 "zebra")
+;;'("zebra" "baboon" "chinchilla")
+;;
+;;> (list-set-two-fixed some-animals 1 "zebra")
+;;'("aardvark" "zebra" "chinchilla")
+;;
+;;> (list-set-two-fixed some-animals 2 "zebra")
+;;'("aardvark" "baboon" "zebra")
+;;
+;;> (list-set-two-fixed some-animals 3 "zebra")
+;;'("aardvark" "baboon" "chinchilla")
+;;
+;;> (list-set-two-fixed (list 1 3 4 "hello" "universe" 'and 'galaxy) 4 'world)
+;;'(1 3 4 "hello" world and galaxy)
+;;
+;;> (list-set-two-fixed (list 1 3 4 "hello" "universe" 'and 'galaxy) 7 'world)
+;;'(1 3 4 "hello" "universe" and galaxy)
+;;
+;;> (list-set-two-fixed (list) 7 'world)
+;;'()
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 2 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+; 2017-12-02    15:10   15:20   10mins  Solution Completed
+;                                       Examples/Tests Completed
+;                                       Problem Solved
+; Time Spent: 
+;  10mins
+; Citations:
+
+; Solution:
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+(define nested-list-tally
+  (lambda (lst pred?)
+    (let count-tally ([remaining lst]
+                      [tally 0])
+      (cond
+        [(null? remaining)
+         tally]
+        [(list? (car remaining))
+         (count-tally (cdr remaining) (count-tally (car remaining) tally))]
+        [(pred? (car remaining))
+         (count-tally (cdr remaining) (+ tally 1))]
+        [else
+         (count-tally (cdr remaining) tally)]))))
+
+; Examples/Tests:
+
+;;> (nested-list-tally null odd?)
+;;0
+
+;;> (nested-list-tally (list (list 1 2) 3 4 (list (list 5) 6)) odd?)
+;;3
+
+;;> (nested-list-tally (list "a" (list 2 "b" 3) "c" (list 4 "d") "e") string?)
+;;5
+
+;;> (nested-list-tally (list "a" (list 2 "b" 3) "c" #f (list #t #f) (list (list 'dg #t) 4 "d") "e") boolean?)
+;;4
+
+;;> (nested-list-tally (list 5 (list) (list 7) 'hello (list 'null) (list 'null (list 'null)) 'null)
+;;                     (section equal? <> 'null))
+;;4
+
+;;> (nested-list-tally (list 5 (list) (list 7) 'hello (list 'null) (list 'null (list 'null)) 'null)
+;;                     symbol?)
+;;5
+
+;; +-----------+------------------------------------------------------
+;; | Problem 3 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+; 2017-12-02    15:25   16:10   45mins  Documentation Completed
+;                                       Solution Completed
+;                                       Examples/Tests Completed
+;                                       Problem Solved
+; Time Spent: 
+;  45mins
+; Citations:
+
+; Solution:
+; ====== INSTRUCTOR COMMENTS ========================================
+; Documentation
+;  - Great!
+;  - Postconditions should specify that if an element is in the output
+;    vector, then it is also in the original list
+;
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+;;; Procedure:
+;;;   vector-filter
+;;; Parameters:
+;;;   vec, a vector  
+;;;   pred?, a predicate (procedure that returns a boolean value) 
+;;; Purpose:
+;;;   To create a new vector which contain elements from the vector 'vec' that hold true for 'pred?'
+;;; Produces:
+;;;   result-vec, a vector
+;;; Preconditions:
+;;;   'vec' must be a vector
+;;;   * (= (vector? vec) #t)
+;;;   'pred?' must be a procedure that returns #t or #f
+;;;   (or (= (pred? val) #t) (= (pred? val) #f))
+;;;   'pred?' should be a predicate compatible with all the elements present in the vector 'vec'
+;;;   For Example : 
+;;;   * if (pred? = odd?)
+;;;        all elements in 'vec' have to be an integer
+;;;        * (= (integer? (vector-ref vec i)) #t) ; for 0 <= i < (vector-length vec)
+;;; Postconditions:
+;;;   All elements in 'result-vec' hold true for pred
+;;;   * (= (pred? (vector-ref result-vec i)) #t) ; for 0 <= i < (vector-length result-vec)
+;;;   The 'result-vec' is lesser than or equal to in length of 'vec' 
+;;;   * (<= (length result-vec) (length vec))
+;;;   Length of 'result-vec' is equal to the number of element that hold true for 'pred?'
+
+(define vector-filter
+  (lambda (vec pred?)
+    (letrec ([pred-counter (lambda (index len)
+                               (cond
+                                 [(< index 0)
+                                  len]
+                                 [(pred? (vector-ref vec index))
+                                  (pred-counter (- index 1) (+ len 1))]
+                                 [else
+                                  (pred-counter (- index 1) len)]))])
+      (let* ([len (vector-length vec)]
+             [new-len (pred-counter (- len 1) 0)]
+             [new-vec (make-vector new-len)])
+        (let kernel ([new-pos (- new-len 1)]
+                     [pos (- len 1)])
+          (cond
+            [(< new-pos 0)
+             new-vec]
+            [(pred? (vector-ref vec pos))
+             (vector-set! new-vec new-pos (vector-ref vec pos))
+             (kernel (- new-pos 1) (- pos 1))]
+            [else
+             (kernel new-pos (- pos 1))]))))))
+                 
+          
+
+; Examples/Tests:
+
+;;> (vector-filter (vector 2 4080 -67 10 23456 56789 56789 56789 0978658) odd?)
+;;'#(-67 56789 56789 56789)
+
+;;> (vector-filter (vector 2 4080 -67 10 "23456" 56789 56789 "56789" 0978658) string?)
+;;'#("23456" "56789")
+
+;;Predicate given is not compatible with all the elements in the vector
+;;For 'odd?', all the elements have to be integers, there are two strings in the vector in this case
+;;> (vector-filter (vector 2 4080 -67 10 "23456" 56789 56789 "56789" 0978658) odd?)
+;;{{IMAGE}} {{IMAGE}} odd?: contract violation
+;;  expected: integer
+;;  given: "56789"
+
+;;> (vector-filter (vector) null?)
+;;'#()
+
+;;> (vector-filter (vector (list) null (list 3 5 6) (list 'null) 'null) null?)
+;;'#(() ())
+
+;;> (vector-filter (vector (list) null (list 3 5 6) 87 (list 'null) 'null) list?)
+;;'#(() () (3 5 6) (null))
+
+;;> (vector-filter (vector (list) null (list 3 5 6) 87 (list 'null) 'null) integer?)
+;;'#(87)
+
+;; +-----------+------------------------------------------------------
+;; | Problem 4 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+; 2017-12-02    16:10   16:55   45mins  Solution Completed
+;                                       Examples/Tests Completed
+;                                       Problem Solved
+; Time Spent: 
+;  45mins
+; Citations:
+
+; Solution:
+;;; Procedure:
+;;;   next-larger
+;;; Parameters:
+;;;   val, a real number
+;;;   vec, a vector of real numbers
+;;; Purpose:
+;;;   Find the smallest value in vec that is greater than val
+;;; Produces:
+;;;   result, a real number or #f.
+;;; Preconditions:
+;;;   vec is a vector of real numbers sorted from smallest to largest
+;;; Postconditions:
+;;;   If vec contains a number greater than val, then result is the
+;;;     smallest such number.
+;;;   If vec does not contain a number greater than val, then result is #f.
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great!
+;  - Fails on the empty vector (-1)
+;
+; Examples
+;  - Great!
+; ===================================================================
+(define next-larger
+  (lambda (val vec)
+    (cond
+      [(>= val (vector-ref vec (- (vector-length vec) 1)))
+       #f]
+      [(< val (vector-ref vec 0))
+       (vector-ref vec 0)]
+      [else
+       (let search-portion ([lower-bound 0]
+                            [upper-bound (- (vector-length vec) 1)])
+         (let* ([point-of-division (quotient (+ lower-bound upper-bound) 2)]
+                [separating-element (vector-ref vec point-of-division)]
+                [next-element (vector-ref vec (+ point-of-division 1))])
+           (cond
+             [(and (>= val separating-element) (< val next-element))
+              next-element]
+             [(< val separating-element)
+              (search-portion lower-bound (- point-of-division 1))]
+             [else
+              (search-portion (+ point-of-division 1) upper-bound)])))])))
+
+
+; Examples/Tests:
+
+;;> (next-larger 4 '#(2 4 6 8 10 12))
+;;6
+
+;;> (next-larger 100 '#(1 3 10 29))
+;;#f
+
+;;> (next-larger 10 '#(7 8 9 10))
+;;#f
+
+;;> (next-larger 0 '#(100 200 300 400))
+;;100
+
+;;> (next-larger 225 '#(100 200 300 400))
+;;300
+
+;;> (next-larger 5 '#(3 4 5 5 5 7))
+;;7
+
+;;> (next-larger 5 '#(5 5 5 5 5 5 5 5))
+;;#f
+
+;;> (next-larger 5 '#(5 5 5 5 5 5 5 5 6))
+;;6
+
+;;> (next-larger 4 '#(4 5 5 5 5 5 5 5 5 6))
+;;5
+
+;; +-----------+------------------------------------------------------
+;; | Problem 5 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed     Activity
+; 2017-12-02    17:05   18:40   1hr 35mins  Part 'a' completed
+;                                           Part 'b' completed
+;                                           Part 'c' completed
+;                                           Part 'd' completed
+;                                           Worked on Paert 'e'
+; 2017-12-03    19:30   20:05   35mins      Part 'e' completed
+;                                           Examples/Tests Completed
+;                                           Problem Solved
+; Time Spent:
+;  2hrs 10 mins
+
+; Citations:
+
+; Supplied code:
+
+;;; Counter
+;;;   cons-counter
+(define cons-counter (counter-new "cons"))
+
+;;; Procedure:
+;;;   $cons
+;;; Parameters:
+;;;   left, a Scheme value
+;;;   right, a Scheme value
+;;; Purpose:
+;;;   Make a pair from left and right and log the operation.
+;;; Produces:
+;;;   pair, a pair
+;;; Preconditions:
+;;;   cons-counter is defined.
+;;; Postconditions:
+;;;    (car pair) = left
+;;;    (cdr pair) = right
+;;;    cons-counter has been incremented.
+(define $cons
+  (lambda (val lst)
+    (counter-increment! cons-counter)
+    (cons val lst)))
+
+;;; Procedure:
+;;;   list-append
+;;; Parameters:
+;;;   front, a list of size n
+;;;   back, a list of size m
+;;; Purpose:
+;;;   Put front and back together into a single list.
+;;; Produces:
+;;;   appended, a list of size n+m.
+;;; Preconditions:
+;;;   front is a list [Unverified]
+;;;   back is a list [Unverified]
+;;; Postconditions:
+;;;   For all i, 0 <= i < n,
+;;;    (list-ref appended i) is (list-ref front i)
+;;;   For all i, n <= i < n+m
+;;;;   (list-ref appended i) is (list-ref back (- i n))
+(define list-append
+  (lambda (front back)
+    (if (null? front)
+        back
+        ($cons (car front) 
+               (list-append (cdr front) back)))))
+
+;;; Procedures:
+;;;   tree-flatten
+;;;   tree-flatten-new
+;;; Parameters:
+;;;   tree, a tree
+;;; Purpose:
+;;;   "Flatten" the tree into the corresponding list.
+;;; Produces:
+;;;   lst, a list
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   Every value in the tree appears in the list.
+;;;   No additional values appear in the list.
+;;;   The values are in the same order in the list as they are
+;;;     in the tree.  (Things in the left subtree appear before
+;;;     the value in a node, which appears before things in the
+;;;     right subtree.
+(define tree-flatten
+  (lambda (tree)
+    (if (empty? tree)
+        null
+        (list-append (tree-flatten (left tree))
+                     ($cons (contents tree)
+                            (tree-flatten (right tree)))))))
+
+; Solution:
+
+; a.
+;; 'list-append' and 'tree-flatten' updated
+
+; b.
+;    t1 requires 10 calls to cons
+;    t2 requires 7  calls to cons
+;    t3 requires 6  calls to cons
+;    t4 requires 6  calls to cons
+;    t5 requires 5  calls to cons
+;    t6 requires 4  calls to cons
+;    t7 requires 5  calls to cons
+
+; c.
+;    t1 requires the most calls to 'cons' because 
+;    Since it has all the elements as part of the left tree, therfore it is passed into 'list-append'
+;    as 'front' at every level. The working of 'list-append' is observed to call 'cons' as many times as
+;    the length of 'front'. Since there are three calls to 'list-append' with the lengths of 'front' 
+;    being 1, 2 and 3 and there is 1 'cons' call for each element in the 'tree-flatten' procedure.
+;    Which makes the no. of cons call = 1 + (1 + 3) + (1 + 2) + (1 + 1) = 10
+
+; d.
+;    t6 requires the fewest calls to 'cons' because
+;    Since it hass all the elements as part of the right tree, therefore it is passed into 'list-append'
+;    as 'back' and 'front' is null, therefore there are no calls to 'cons' made by the 'list-append'
+;    making the number of 'cons' calls procedure independent of 'list-append' and equal to the number of
+;    'cons' calls in 'tree-flatten' which is equal to the number of elements.
+
+; e.
+
+(define tree-flatten-new
+  (lambda (tree)
+    (let partial-flatten ([part-tree tree]
+                          [partial null])
+      (cond
+        [(empty? part-tree)
+         partial]
+        [else
+         (partial-flatten (left part-tree) 
+                          ($cons (contents part-tree)
+                                 (partial-flatten (right part-tree) partial)))]))))
+
+
+; Examples/Tests:
+
+(define t1
+  (node 4 (node 3 (node 2 (node 1 empty empty) empty) empty) empty))
+;;> (counter-reset! cons-counter) (tree-flatten-new t1) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t2
+  (node 3 (node 2 (node 1 empty empty) empty) (node 4 empty empty)))
+;;> (counter-reset! cons-counter) (tree-flatten-new t2) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t3
+  (node 3 (node 1 empty (node 2 empty empty)) (node 4 empty empty)))
+;;> (counter-reset! cons-counter) (tree-flatten-new t3) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t4
+  (node 2 (node 1 empty empty) (node 4 (node 3 empty empty) empty)))
+;;> (counter-reset! cons-counter) (tree-flatten-new t4) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t5
+  (node 2 (node 1 empty empty) (node 3 empty (node 4 empty empty))))
+;;> (counter-reset! cons-counter) (tree-flatten-new t5) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t6
+  (node 1 empty (node 2 empty (node 3 empty (node 4 empty empty)))))
+;;> (counter-reset! cons-counter) (tree-flatten-new t6) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t7
+  (node 1 empty (node 3 (node 2 empty empty) (node 4 empty empty))))
+;;> (counter-reset! cons-counter) (tree-flatten-new t7) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(1 2 3 4)
+;;cons: 4
+
+(define t8
+  (node 4 (node 2 (node 0 (node -2 empty (node -1 empty empty)) (node 1 empty empty)) (node 3 empty empty))
+          (node 6 empty (node 7 empty
+                                (node 8 empty empty)))))
+;;> (counter-reset! cons-counter) (tree-flatten-new t8) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'(-2 -1 0 1 2 3 4 6 7 8)
+;;cons: 10
+
+(define t9
+  (node "hello" empty empty))
+;;> (counter-reset! cons-counter) (tree-flatten-new t9) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'("hello")
+;;cons: 1
+
+(define t10
+  empty)
+;;> (counter-reset! cons-counter) (tree-flatten-new t10) (counter-print cons-counter)
+;;'#("cons" 0)
+;;'()
+;;cons: 0
