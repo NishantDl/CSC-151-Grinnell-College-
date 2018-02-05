@@ -1,0 +1,469 @@
+#lang racket
+
+(require csc151)
+(require rackunit)
+(require rackunit/text-ui)
+
+;;; File:
+;;;   205370.rkt
+;;; Authors:
+;;;   The student currently referred to as 205370
+;;;   Titus Klinge
+;;;   Samuel A. Rebelsky
+;;; Contents:
+;;;   Code and solutions for Exam 1 2017F
+;;; Citations:
+;;;   NONE
+
+; +---------+--------------------------------------------------------
+; | Grading |
+; +---------+
+
+; This section is for the grader's use.
+
+; Problem 1: 9
+; Problem 2: 9
+; Problem 3: 8
+; Problem 4: 7
+; Problem 5: 10
+; Problem 6: 10
+;           ----
+;     Total: 53
+
+;    Scaled: 88.3
+;    Errors: 2
+;     Times: 2
+;          :
+;          :
+;          :
+;           ----
+;     Total: 92.3
+
+; +----------+-------------------------------------------------------
+; | Prologue |
+; +----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;    09/14/17    17:35   17:50  Done  
+; +-----------+------------------------------------------------------
+; | Problem 1 |
+; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution (a) (-1)
+;  - Why restrict input to reals?
+;  - Missing postcondition: result-num = num + 3
+;
+; Solution (b)
+;  - Great!
+;
+; Solution (c)
+;  - Great!
+;
+; Solution (d)
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   09/14/17    17:50   18:00   Solved 
+; Time Spent:   00:10
+
+; Citations:    NONE
+
+; Solution:
+
+;;; Procedure:
+;;;   add3
+;;; Parameters:
+;;;   num, a number
+;;; Purpose:
+;;;   Generates a number by adding 3 to the input given
+;;; Produces:
+;;;   result-num, a number
+;;; Preconditions:
+;;;   The input has to be a Real Number. 
+;;; Postconditions:
+;;;   * if num->exact
+;;;        then result-num->exact
+;;;   * if num->inexact
+;;;        then result-num->inexact
+
+(define add3b
+	(o increment increment increment))
+
+(define add3c
+	(section + <> 3))
+
+(define add3d
+	(lambda (num)
+     	(+ num 3)))
+
+; Examples/Tests:
+; > (add3b 17.8)
+; 20.8
+; > (add3c 67.23)
+; 70.23
+; > (add3d 101.0)
+; 104.0
+; > (add3b 13)
+; 16
+; > (add3c 76)
+; 79
+; > (add3d 566)
+; 569
+;> (add3b 4+5i)
+;7+5i
+;> (add3c 4+5i)
+;7+5i
+;> (add3d 4+5i)
+;7+5i
+
+; +-----------+------------------------------------------------------
+; | Problem 2 |
+; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Documentation (-1)
+;  - Be more formal in your preconditions. For example,
+;     * 0 <= start < (length lst)
+;     * start <= finish <= (length lst)
+;  - Need the postcondition analogous to
+;     * if lst = (x0 x1 x2 x3 ... xn),
+;          then result = (xi x(i+1) x(i+2) ... x(j-1) where  i=start and j=finish
+;
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   09/14/17    18:05   18:20   Solved
+; Time Spent:   00:15
+
+; Citations:    NONE
+
+; Solution:
+
+;;; Procedure:
+;;;   sublist
+;;; Parameters:
+;;;   lst, a list
+;;;   start, an integer
+;;;   finish, an integer
+;;; Purpose:
+;;;   Generates a list by extracting the elements of the given list between start and finish including
+;;;   the element at start  
+;;; Produces:
+;;;   result-list, a list
+;;; Preconditions:
+;;;   The list entered cannot be a null list.
+;;;   The start and finish values have to be exact non-negative integers.
+;;;   The start and finish values have to be within the index range of the list
+;;;   entered.
+;;;   The finish value has to be greater than the start value.
+;;; Postconditions:
+;;;   * (length result-lst) = (- finish start) 
+
+(define sublist
+ (lambda (lst start finish)
+   (drop (take lst finish) start)))
+
+; Examples/Tests:
+; > (sublist '("alpha" "beta" "gamma" "delta" "epsilon" "phi") 1 4)
+;   '("beta" "gamma" "delta")
+; > (sublist '(394.9 103.55 0 -92 -19.6 10866 457) 2 7)
+;   '(0 -92 -19.6 10866 457)
+
+; +-----------+------------------------------------------------------
+; | Problem 3 |
+; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution (a)
+;  - Great!
+;
+; Solution (b) (-1)
+;  - Needs more newlines! Consider adding them after
+;     * list->string
+;     * the first (section ...)
+;
+; Solution (c) (-1)
+;  - Be more formal to your preconditions. For example,
+;     * 0 <= start < (string-length str)
+;     * start <= finish <= (string-length str)
+;  - Missing postcondition:
+;     * For all start <= i < finish, (string-ref str i) = (string-ref result (i - start))
+;
+; Examples
+;  - Needs more tests! Please provide 3 for each problem / procedure
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   09/14/17    18:25   18:45   Solved
+; Time Spent:   00:20
+
+; Citations:    NONE
+
+; Solution:
+
+;;; Procedure:
+;;;   substring
+;;; Parameters:
+;;;   str, a string
+;;;   start, an integer
+;;;   finish, an integer
+;;; Purpose:
+;;;   Generates a string by extracting the elements of the string between start and finish including
+;;;   the element at start 
+;;; Produces:
+;;;   result-str, a string
+;;; Preconditions:
+;;;   The string entered cannot be a null string. 
+;;;   The start and finish values have to be exact integers.
+;;;   The start and finish values have to be within the index range of the string
+;;;   entered.
+;;;   The finish value has to be greater than the start value.
+;;; Postconditions:
+;;;   * (length result-str) = (- finish start)
+
+; Code reformated :
+
+(define f
+ (lambda (a b c)
+   (list->string (map1 (o (section string-ref a <>) (section + b <>))
+                       (iota (- c b))))))
+
+; Code reformated and renamed :
+
+(define substring
+ (lambda (str start finish)
+   (list->string (map1 (o (section string-ref str <>) (section + start <>))
+                       (iota (- finish start))))))
+
+; Examples/Tests:
+; > (substring "Hello, How are you ?" 9 16)
+;   "w are y"   
+          
+
+; +-----------+------------------------------------------------------
+; | Problem 4 |
+; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution (a) (-1)
+;  - Postconditions do not require that the elements of output
+;    contain exactly the even elements of lst
+;
+; Solution (b) (-2)
+;  - Missing at least one major case (e.g. duplicate elements, all even,
+;    all odd, mixed, empty)
+;  - Each test case is not thoroughly tested (e.g. only contains
+;    a single check)
+; ===================================================================
+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   09/14/17    21:20   21:35   Solved
+; Time Spent:   00:15
+
+; Citations:    NONE 
+
+; Solution:
+
+; a.
+
+;;; Procedure:
+;;;   remove-odds   
+;;; Parameters:
+;;;   lst, a list
+;;; Purpose:
+;;;   Generates a list by removing all the odd elements from the list entered
+;;; Produces:
+;;;   result-lst, a list
+;;; Preconditions:
+;;;   The list enetered can contain only integers (exact or inexact)  
+;;; Postconditions:
+;;;   * (length lst)>=(length result-lst)
+
+; b.
+
+(define tests-remove-odds
+ (test-suite
+  "Tests of the remove-odds procedure"
+  (test-case
+   "Empty lists"
+   (check-equal? (remove-odds (list)) (list)))
+  (test-case
+   "Non-empty lists with no odd numbers"
+   (check-equal? (sort (remove-odds (list 2 10 8 6 4)) <)
+                 (list 2 4 6 8 10)
+                 "A few small even integers")
+  (test-case
+   "Non-empty list with odd numbers" 
+   (check-equal? (sort (remove-odds (list 9 7 5 3 19 0)) <)
+                 (list 0)
+                 "Only one even integer")
+   (check-equal? (sort (remove-odds (list 3 9 2 7 8 5 10 99)) <)
+                 (list 2 8 10)
+                 "More than one even integer")) 
+  (test-case
+   "List with only odd numbers"
+   (check-equal? (sort (remove-odds (list 3 5 7 9 11)) <)
+                 (list)
+                 "Only odd numbers")))))
+                 
+  
+; +-----------+------------------------------------------------------
+; | Problem 5 |
+; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Very nice!
+;  - Watch your code alignment (use Ctrl+I before you submit)
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   09/14/17    21:35   21:55   Solved
+; Time Spent:   00:20
+      
+; Citations:    NONE
+
+; Solution:
+
+;;; Procedure:
+;;;   odd-first?
+;;; Parameters:
+;;;   a, an integer
+;;;   b, an integer
+;;; Purpose:
+;;;   Determine if a comes before b according to the metric
+;;;   "odd numbers come before even numbers.
+;;; Produces:
+;;;   first?, a Boolean value
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   * If a is odd, first? is #t
+;;;   * Otherwise, first? is #f
+;;; Philosophy:
+;;;   Used to order lists of integers to put odd numbers first.
+
+(define odd-first?
+  (lambda (a b)
+    (odd? a)))
+
+(define remove-odds
+ (lambda (lst)
+   (define curLst
+     (sort (append (list 0) lst) odd-first?))
+   (drop curLst (+ 1 (index-of 0 curLst)))))
+
+
+; +-----------+------------------------------------------------------
+; | Problem 6 |
+; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Very nice!
+; ===================================================================
+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   09/14/17    22:00   22:20   Solved
+; Time Spent:   00:20
+
+; Citations:    NONE
+
+; Supplied code
+
+(define teaching-fall-2017
+ (list
+   (list "Curtsinger" 
+         "Charlie" 
+         "Professor" 
+         (list "TUT-100" "CSC-211"))
+   (list "Klinge" 
+         "Titus" 
+         "Professor" 
+         (list "CSC-151" "CSC-341" "CSC-395"))
+   (list "Osera" 
+         "Peter-Michael" 
+         "Professor" 
+         (list "TUT-100" "CSC-207" "MAT-208"))
+   (list "Rebelsky" 
+         "Samuel" 
+         "Campus Curmudgeon" 
+         (list "CSC-151" "CSC-301" "CSC-321" "CSC-322"))
+   (list "Vostinar" 
+         "Anya" 
+         "Professor" 
+         (list "CSC-207" "CSC-301"))
+   (list "Weinman" "Jerod" "Department Chair" (list "CSC 161"))))
+
+; Solution:
+
+;;; Procedure:
+;;;   describe-teaching
+;;; Parameters:
+;;;   person, a list
+;;; Purpose:
+;;;   Generate a string that describes the teaching responsibilities
+;;;   of a faculty member.
+;;; Produces:
+;;;   description, a string
+;;; Preconditions:
+;;;   * list has the form 
+;;;     (surname:string forename:string title:string courses:list-of-strings)
+;;;   * courses is nonempty
+;;; Postconditions:
+;;;   description is a string of the form "TITLE FORE SUR is teaching COURSE"
+
+(define describe-teaching
+ (lambda (person)
+   (string-append (caddr person) " " (cadr person) " " (car person) " is teaching "
+                  (car (cadddr person))
+                  (reduce string-append (append (list "") (map (section string-append " and " <>)
+                                                               (cdr (cadddr person)))))))) 
+
+; Examples/Tests:
+
+(define tests-describe-teaching
+  (test-suite
+   "Tests for the describe-teaching procedure"
+    (check-equal?
+     (describe-teaching (list "Last" "First" "Title" (list "A")))
+                        "Title First Last is teaching A")
+    (check-equal?
+     (describe-teaching (list "Last" "First" "Title" (list "A" "B")))
+                        "Title First Last is teaching A and B")
+    (check-equal?
+     (describe-teaching (list "Last" "First" "Title" (list "A" "B" "C")))
+                        "Title First Last is teaching A and B and C")
+    (check-equal?
+     (describe-teaching (list "First" "Title" "Last" (list "A" "B")))
+                        "Last Title First is teaching A and B")
+    (check-equal?
+     (describe-teaching (list "Title" "First" "Last" (list "C" "B" "A")))
+                        "Last First Title is teaching C and B and A")))
+
+;  > (map describe-teaching teaching-fall-2017)
+;   '("Professor Charlie Curtsinger is teaching TUT-100 and CSC-211"
+;     "Professor Titus Klinge is teaching CSC-151 and CSC-341 and CSC-395"
+;     "Professor Peter-Michael Osera is teaching TUT-100 and CSC-207 and MAT-208"
+;     "Campus Curmudgeon Samuel Rebelsky is teaching CSC-151 and CSC-301 and CSC-321 and CSC-322"
+;     "Professor Anya Vostinar is teaching CSC-207 and CSC-301"
+;     "Department Chair Jerod Weinman is teaching CSC-161")
