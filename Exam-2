@@ -1,0 +1,658 @@
+#lang racket
+
+(require csc151)
+(require rackunit)
+(require rackunit/text-ui)
+
+;;; File:
+;;;   459925.rkt
+;;; Authors:
+;;;   The student currently referred to as 459925
+;;;   Titus Klinge
+;;;   Samuel A. Rebelsky
+;;; Contents:
+;;;   Code and solutions for Exam 2 2017F
+;;; Citations:
+;;;
+
+;; +---------+--------------------------------------------------------
+;; | Grading |
+;; +---------+
+
+;; This section is for the grader's use.
+
+;; Problem 1: 8
+;; Problem 2: 10
+;; Problem 3: 10
+;; Problem 4: 10
+;; Problem 5: 10
+;; Problem 6: 9
+;;           ----
+;;     Total: 57
+
+;;    Scaled: 95
+;;    Errors: 2
+;;     Times: 2
+;;           ----
+;;     Total: 99
+
+;; +----------+-------------------------------------------------------
+;; | Prologue |
+;; +----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-04  17:00   18:00   Prologue completed and submitted
+; Time Spent: 
+;   1 hour
+;; +-----------+------------------------------------------------------
+;; | Problem 1 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Documentation
+;  - Great!
+;
+; Kernel
+;  - Great!
+;
+; Husk (-2)
+;  - Your husk should be named "values-between"
+;  - Fails on inexact intege parameters (since iota requires exact)
+;  - Also returns nothing when start = finish. Why the special case
+;    of checking if start = finish and using display statements?
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-04  19:35   20:05   30 mins 6P-Documentation Completed
+;                                       kernel procedure completed
+;                                       husk procedure completed
+;                                       Examples/Tests done and pasted
+; Time Spent: 
+;   30 mins
+; Citations:
+;   NONE
+; Solution:
+
+; a.
+
+;;; Procedure:
+;;;   values-between
+;;; Parameters:
+;;;   start, an integer
+;;;   finish, an integer 
+;;; Purpose:
+;;;   To generate a list of numbers starting from 'start' till 'finish' excluding 'finish'
+;;; Produces:
+;;;   result-lst, a list
+;;; Preconditions:
+;;;   * 'start' has to be an integer
+;;;   * 'finish' has to be an integer
+;;;   * 'start' has to be lesser than 'finish'
+;;;     (start < finish) = true
+;;; Postconditions:
+;;;   * length result-lst = finish - start
+;;;   * result-lst = (start+0, start+1, start+2, ........., start+n)
+;;;   * start+n = start+(length result-lst)-1 = finish-1
+;;;   * n = (length result-lst)-1 = (finish-start)-1
+
+;b.
+
+(define values-between-kernel
+  (lambda (start finish)
+    (let ([lst (iota (- finish start))])
+      (map (section + start <>) lst))))
+
+;c.
+
+(define values-between-husk
+  (lambda (start finish)
+    (cond
+      [(or (not (integer? start)) (not (integer? finish)))
+       (error "Please enter two integers to process an output list !!")]
+      [(> start finish)
+       (error "The entered values are contradicting the process,
+              'start' should be lesser than 'finish'")]
+      [(= start finish)
+       (display ''())
+       (display "\nEnter two integer values where 'start'>'finish' to obtain a\nnon-empty list")]
+      [else
+       (values-between-kernel start finish)])))
+
+; Examples/Tests:
+
+;> (values-between-husk 3 5)
+;'(3 4)
+;> (values-between-husk 7 12)
+;'(7 8 9 10 11)
+;> (values-between-husk -3 3)
+;'(-3 -2 -1 0 1 2)
+
+;> (values-between-husk 2 15)
+;'(2 3 4 5 6 7 8 9 10 11 12 13 14)
+;> (values-between-husk 12 15)
+;'(12 13 14)
+;> (values-between-husk -12 -8)
+;'(-12 -11 -10 -9)
+
+;; Checking ERROR Cases:
+
+;> (values-between-husk "hello" '5ty)
+;{{IMAGE}} {{IMAGE}} Please enter two integers to process an output list !!
+;> (values-between-husk 34.9 -782.5)
+;{{IMAGE}} {{IMAGE}} Please enter two integers to process an output list !!
+
+;> (values-between-husk -2 -15)
+;{{IMAGE}} {{IMAGE}} The entered values are contradicting the process,
+;              'start' should be lesser than 'finish'
+;> (values-between-husk 12 1)
+;{{IMAGE}} {{IMAGE}} The entered values are contradicting the process,
+;              'start' should be lesser than 'finish'
+
+;> (values-between-husk 120 120)
+;'()
+;Enter two integer values where 'start' is greater than 'finish' to obtain a
+;non-empty list
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 2 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-04  21:10   21:20   10 mins kernel procedure completed
+;                                       Examples/Tests done and pasted
+;                            
+; Time Spent: 
+;   10 mins 
+; Citations:
+;   NONE
+; Solution:
+
+(define grid
+  (lambda (width height)
+    (let ([col-lst (reduce append (map (section make-list height <>) (iota width)))]
+          [row-lst (reduce append (make-list width (iota height)))])
+      (map list col-lst row-lst))))
+
+; Examples/Tests:
+
+;> (grid 2 2)
+;'((0 0) (0 1) (1 0) (1 1))
+;> (grid 4 1)
+;'((0 0) (1 0) (2 0) (3 0))
+;> (grid 4 3)
+;'((0 0) (0 1) (0 2) (1 0) (1 1) (1 2) (2 0) (2 1) (2 2) (3 0) (3 1) (3 2))
+
+;> (grid 4 0)
+;'()
+;> (grid 1 10)
+;'((0 0) (0 1) (0 2) (0 3) (0 4) (0 5) (0 6) (0 7) (0 8) (0 9))
+;> (grid 8 2)
+;'((0 0) (0 1) (1 0) (1 1) (2 0) (2 1) (3 0) (3 1) (4 0) (4 1) (5 0) (5 1) (6 0) (6 1) (7 0) (7 1))
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 3 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-04  21:20   21:40   20 mins kernel procedure completed
+;                                       Examples/Tests completed
+; Time Spent: 
+;   20 mins
+; Citations:
+;   NONE
+; Solution:
+
+(define describe-number
+  (lambda (val)
+    (let ([basic-type  (cond
+                         [(integer? val)
+                          "integer"]
+                         [(real? val)
+                          "real"]
+                         [else
+                          "complex number"])]
+          [exactness  (cond
+                        [(exact? val)
+                         "exact "]
+                        [else
+                         "inexact "])]
+          [sign-type  (cond
+                        [(not (real? val))
+                         ""]
+                        [(< val 0)
+                         "negative "]
+                        [(> val 0)
+                         "positive "]
+                        [else
+                         ""])])
+      (string-append sign-type exactness basic-type))))
+                           
+                       
+          
+
+; Examples/Tests:
+
+;> (describe-number 1)
+;"positive exact integer"
+;> (describe-number -2.0)
+;"negative inexact integer"
+;> (describe-number 11/3)
+;"positive exact real"
+;> (describe-number 3+4i)
+;"exact complex number"
+;> (describe-number (sqrt 2))
+;"positive inexact real"
+
+;> (describe-number -3-4i)
+;"exact complex number"
+;> (describe-number -45/2)
+;"negative exact real"
+;> (describe-number -45.453)
+;"negative inexact real"
+;> (describe-number -45)
+;"negative exact integer"
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 4 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Works great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-04  21:40   22:30   50 mins kernel procedure completed
+;                                       4P-Documentation for helper procedure completed
+;                                       helper procedure created
+;                                       Examples/Tests completed
+; Time Spent: 
+;   50 mins
+; Citations:
+;   NONE
+; Solution:
+
+; Documentation (Helper Procedure):
+;;;Procedure:
+;;;  get-neighbours
+;;;Parameters:
+;;;  wrd-lst, a list of strings
+;;;  wrd-indx, an integer refering to an index in 'wrd-lst'
+;;;Purpose:
+;;;  To generate a list with at most two strings, one at the previous indexd of 'wrd-indx' and
+;;;  the other at the next index of 'wrd-indx' in 'wrd-lst'
+;;;Produces:
+;;;  prev-next-lst, a list of at most two strings and at least one string
+
+(define get-neighbours
+  (lambda (wrd-lst wrd-indx)
+    (let* ([len (length wrd-lst)]
+           [prev (- wrd-indx 1)]
+           [next (+ wrd-indx 1)])
+      (cond
+        [(= wrd-indx 0)
+         (list (list-ref wrd-lst next))]
+        [(= wrd-indx (- len 1))
+         (list (list-ref wrd-lst prev))]
+        [else
+         (list (list-ref wrd-lst prev) (list-ref wrd-lst next))]))))
+      
+          
+(define neighbouring-words
+  (lambda (file wrd)
+    (let* ([wrd-lst (file->words file)]
+           [all-index (iota (length wrd-lst))]
+           [wrd-index (filter (o (section string-ci=? <> wrd)
+                                 (section list-ref wrd-lst <>))
+                              all-index)])
+      (reduce append (map (section get-neighbours wrd-lst <>)
+                          wrd-index))))) 
+
+                              
+
+; Examples/Tests:
+
+;;; Tests with small files: 
+;; Test-File-1 (Taken from sample input in Exam):
+;; Write, but do not document, a procedure, (neighboring-words file word),
+;; that finds all of the words that appear immediately before or after the given
+;; word in the named file. For example, if the file contained the previous paragraph,
+;; you would see the following output.
+
+;; Test Result:
+;> (neighbouring-words "/home/dalmiani/Desktop/Test-File-1.txt" "the")
+;'("of" "words" "after" "given" "in" "named" "if" "file" "contained" "previous" "see" "following")
+
+
+;; Test-File-2 ('The' added to the front):
+;; The Write, but do not document, a procedure, (neighboring-words file word),
+;; that finds all of the words that appear immediately before or after the given
+;; word in the named file. For example, if the file contained the previous paragraph,
+;; you would see the following output.
+
+;; Test Result:
+;> (neighbouring-words "/home/dalmiani/Desktop/Test-File-2.txt" "the")
+;'("Write"
+;  "of"
+;  "words"
+;  "after"
+;  "given"
+;  "in"
+;  "named"
+;  "if"
+;  "file"
+;  "contained"
+;  "previous"
+;  "see"
+;  "following")
+
+
+;; Test-File-3 ('the' added to the back):
+;; Write, but do not document, a procedure, (neighboring-words file word),
+;; that finds all of the words that appear immediately before or after the given
+;; word in the named file. For example, if the file contained the previous paragraph,
+;; you would see the following output the.
+
+;; Test Result:
+;> (neighbouring-words "/home/dalmiani/Desktop/Test-File-3.txt" "the")
+;'("of"
+;  "words"
+;  "after"
+;  "given"
+;  "in"
+;  "named"
+;  "if"
+;  "file"
+;  "contained"
+;  "previous"
+;  "see"
+;  "following"
+;  "output")
+
+
+;; Test-File-4 ('the' added to the front and back):
+;; the Write, but do not document, a procedure, (neighboring-words file word),
+;; that finds all of the words that appear immediately before or after the given
+;; word in the named file. For example, if the file contained the previous paragraph,
+;; you would see the following output the.
+
+;; Test Result:
+;> (neighbouring-words "/home/dalmiani/Desktop/Test-File-4.txt" "the")
+;'("Write"
+;  "of"
+;  "words"
+;  "after"
+;  "given"
+;  "in"
+;  "named"
+;  "if"
+;  "file"
+;  "contained"
+;  "previous"
+;  "see"
+;  "following"
+;  "output")
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 5 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Procedure and local variable names
+;  - Good choices
+;
+; Procedure reformatting
+;  - Looks pretty nice
+;
+; Documentation
+;  - Pretty solid
+;
+; Explanation of procedure
+;  - Good explanation
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-04  22:40   23:30   55 mins 6P-Domentation of procedure completed
+;                                       Procedure Reformatting completed
+;                                       Procedure Renaming completed
+;                                       Examples/Tests completed and Pasted
+; Time Spent: 
+;   55 mins
+; Citations:
+;   NONE
+; Solution:
+
+;a. and b.
+
+(define seperate-even-odd-index 
+  (lambda (lst) 
+    (let* ([all-index (iota (length lst))]
+           [bool-lst (map even? all-index)]
+           [val-bool-lst (map list lst bool-lst)] 
+           [only-evn (filter cadr val-bool-lst)]
+           [only-odd (filter (negate cadr) val-bool-lst)])
+      (list (map car only-evn) (map car only-odd)))))
+
+
+; c.
+
+;;; Procedure:
+;;;   seperate-even-odd-index
+;;; Parameters:
+;;;   lst, a list
+;;; Purpose:
+;;;   To generate a list of two lists, with the first list conating all the elements
+;;;   with an even index and the other containing elements with an odd index
+;;; Produces:
+;;;   seperate-lsts, a list of two lists
+;;; Preconditions:
+;;;   * lst = (ele0, ele1, ele2, ele3 ...... elen)
+;;;   * There is no restriction to the type of element
+;;; Postconditions:
+;;;   * (length seperate-lsts) = 2
+;;;   * (+ (length (car serperate-lsts)) (length (cadr serperate-lsts))) = (length lst)
+;;;   * Sum of the lengths of the the two list in 'seperate-lsts' is the same as the
+;;;     length of 'lst'
+;;;   * When lst = (ele0, ele1, ele2, ele3 ...... eleN)
+;;;   * if (N is even)
+;;;        seperate-lst = '((ele0 ele2 ... eleN) (ele1 ele3 ... ele(N-1)))
+;;;     else
+;;;        seperate-lst = '((ele0 ele2 ... ele(N-1)) (ele1 ele3 ... eleN))
+;;;   * if (any element is a list)
+;;;        The elements inside the list are not counted as seperate elements
+;;;        The whole list is one element
+
+
+; d.
+;; Explanation of the procedure achieving its goal:
+;;; 1. A list 'lst' is taken as an input
+;;; 2. A list is created named 'all'index' from '0' - (length of 'lst') [last value being (length -1)]
+;;;    Each value corresponding to the index of the each value in 'lst'
+;;; 3. A new list named 'evn-true-lst' is created using the list of indexes.
+;;;    The list if mapped with the procedure (even?) which returns true when encountering
+;;;    an even element and false when encountering an odd one.
+;;;    This list contains only boolean values. 'true' at even indexes and 'false' at odd indexes. 
+;;; 4. A list named 'evn-true' is created by mapping the procedure (list) to two other lists
+;;;    First being 'lst', the other being 'evn-true-lst'.
+;;;    the resulting list in a list of lists of length 2, containing the element and the truth
+;;;    value of it being even
+;;; 5. A new list named 'only-evn' is created containing only the lists at even indexes by filtering
+;;;    the 'evn-true' list using the second element of every list in it.
+;;;    Lists containing a 'false' were omitted
+;;; 6. A new list names 'only-odd' is created containing only the lists at odd indexes by filtering
+;;;    the 'evn-true' list using the second element of every list in it.
+;;;    Lists containing a 'true' were omitted
+;;; 7. Two lists are simultaneously created by mapping 'car' to 'only-evn' and 'only-odd'
+;;;    to omit the boolean value, and keep the original value. 
+;;; 8. These two lists are combined using the (list) procedure and returned as the output.
+
+; Examples/Tests:
+
+;; Even number of elements:
+;> (seperate-even-odd-index (list 1 2 3 4 5 6))
+;'((1 3 5) (2 4 6))
+
+;; Odd number of elements:
+;> (seperate-even-odd-index (list 1 12 23 34 45))
+;'((1 23 45) (12 34))
+
+;; Empty List:
+;> (seperate-even-odd-index (list))
+;'(() ())
+
+;; Singleton List:
+;> (seperate-even-odd-index (list -34))
+;'((-34) ())
+
+;; List with differnt types of elements (Numbers, Strings, Symbols, Characters, Lists
+;;                                       and Boolean Values):
+;> (seperate-even-odd-index (list -34 67 129 0.63 "hello" 'yhe 4))
+;'((-34 129 "hello" 4) (67 0.63 yhe))
+;> (seperate-even-odd-index (list -34 67 129 0.63 "hello" 'yhe 4 #\g #f #\d))
+;'((-34 129 "hello" 4 #f) (67 0.63 yhe #\g #\d))
+;> (seperate-even-odd-index (list -34 67 (list 5 6 7) 0.63 "hello" 'yhe 4 #\g #f #\d))
+;'((-34 (5 6 7) "hello" 4 #f) (67 0.63 yhe #\g #\d))
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 6 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution (-1)
+;  - Works great is a very clever solution
+;  - However, the intent of the problem was to  demonstrate that you
+;    know how to use "and" and "or" for control flow in a program.
+;    Here you execute each conditional independently by testing
+;    the conditionals multiple times and "and"ing them together
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-10-05  17:50   18:30   40 mins Redesigned 'categorize-word' procedure using
+;                                       only 'and' and 'or'
+;                                       Examples/Tests completed and pasted
+;   2017-10-06  17:20   17:30   10 mins Code made more compact after discussion with
+;                                       Professor T. Klinge.
+; Time Spent: 
+;   50 mins
+; Citations:
+;   Supplied documentation
+;   Supplied code
+;   Professor T. Klinge
+
+; Solution:
+
+;;; Procedure:
+;;;   categorize-word
+;;; Parameters:
+;;;   word, a string
+;;; Purpose:
+;;;   Assign one of a few categories to word.
+;;; Produces:
+;;;   category, a string
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   category reasonably describes some characteristic of word.
+
+;; Originally Supplied Code:
+
+;(define categorize-word
+;  (lambda (word)
+;    (let* ([wordlen (string-length word)]
+;           [halflen (quotient wordlen 2)])
+;      (if (even? wordlen)
+;          (cond
+;            [(zero? wordlen)
+;             "empty"]
+;            [(string=? (substring word 0 halflen)
+;                       (substring word halflen))
+;             "repeated"]
+;            [else
+;             "even length"])
+;          (if (> wordlen 10)
+;              "oddly long"
+;              (if (= wordlen 1)
+;                  "one letter"
+;                  "odd length"))))))
+
+
+;; Redesigned Code:
+
+(define categorize-word
+  (lambda (word)
+    (let* ([wordlen (string-length word)]
+           [halflen (quotient wordlen 2)]
+           [type (or (and (zero? wordlen) "empty")
+                     (and (even? wordlen) (string=? (substring word 0 halflen)
+                                                    (substring word halflen))
+                          "repeated")
+                     (and (= wordlen 1) "one letter")
+                     (and (odd? wordlen) (> wordlen 10) "oddly long")
+                     (and (even? wordlen) "even length")
+                     "odd length")])
+      type)))
+                      
+         
+
+; Examples/Tests:
+
+;; Given example tests in the exam:
+;> (categorize-word "")
+;"empty"
+;> (categorize-word "wikiwiki")
+;"repeated"
+;> (categorize-word "triskaidekaphobia")
+;"oddly long"
+
+;; Extra tests:
+;> (categorize-word "z")
+;"one letter"
+;> (categorize-word "hello!")
+;"even length"
+;> (categorize-word "hello")
+;"odd length"
+;> (categorize-word "simsim")
+;"repeated"
+;> (categorize-word "t")
+;"one letter"
+
