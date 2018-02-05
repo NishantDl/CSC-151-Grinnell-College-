@@ -1,0 +1,971 @@
+#lang racket
+
+(require csc151)
+
+;;; File:
+;;;   291718.rkt
+;;; Authors:
+;;;   The student currently referred to as 291718
+;;;   Titus Klinge
+;;;   Samuel A. Rebelsky
+;;; Contents:
+;;;   Code and solutions for Exam 3 2017F
+;;; Citations:
+;;;
+
+;; +---------+--------------------------------------------------------
+;; | Grading |
+;; +---------+
+
+;; This section is for the grader's use.
+
+;; Problem 1: 10
+;; Problem 2: 9
+;; Problem 3: 11
+;; Problem 4: 10
+;; Problem 5: 10
+;; Problem 6: 8
+;;           ----
+;;     Total: 58
+
+;;    Scaled: 96.6
+;;    Errors: 3
+;;     Times: 2
+;;          :
+;;          :
+;;          :
+;;           ----
+;;     Total: 101.6
+
+;; +----------+-------------------------------------------------------
+;; | Prologue |
+;; +----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-07  23:00   23:50   50mins  Completed and Submited     
+; Time Spent: 
+;   50mins
+;; +-----------+------------------------------------------------------
+;; | Problem 1 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Documentation
+;  - Great!
+;
+; Solution
+;  - Superb!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-07  23:50   00:05   15mins  Documentation Completed
+;                                       Primary Solution Completed
+;                                       Alternate Solution Completed
+;                                       Examples/Tests Completed
+; Time Spent: 
+;   15mins
+; Citations:
+
+; Solution:
+
+;;; Procedure:
+;;;   list-tally
+;;; Parameters:
+;;;   lst, a list
+;;;   pred?, a procedure
+;;; Purpose:
+;;;   To count the number of elements that return true when called with 'pred?'
+;;; Produces:
+;;;   tally-result, an integer
+;;; Preconditions:
+;;;   'lst' should be a list
+;;;   * (= (list? lst) #t)
+;;;   'pred?' should be a predicate
+;;;   * (or (= (pred? val) #t) (= (pred? val) #f))
+;;;   'pred?' should be predicate that is compatible with all the elements in the list
+;;;   * For Example:
+;;;     if 'pred?' = odd?
+;;;     all elements of the list should be an integer
+;;;     * (= (integer? x) #t) where x is an element of the list
+;;; Postconditions:
+;;;   'tally-result' will be an exact integer indicating the number of value that satisfy the predicate
+;;;   entered
+;;;   (= ((conjoin exact? integer?) tally-result) #t)
+;;;   (= (= tally-result (Number of elements satisfying the predicate) #t)
+
+;;Primary Solution:
+;;(Using tail-recursion)
+
+(define list-tally
+  (lambda (lst pred?)
+    (let kernel ([tally-so-far 0]
+                 [remaining lst])
+      (cond
+        [(null? remaining)
+         tally-so-far]
+        [(pred? (car remaining))
+         (kernel (+ tally-so-far 1) (cdr remaining))]
+        [else
+         (kernel tally-so-far (cdr remaining))]))))
+
+;;Alternate Solution:
+;;(Using direct-recursion)
+
+(define list-tally-2
+  (lambda (lst pred?)
+    (cond
+      [(null? lst)
+       0]
+      [(pred? (car lst))
+       (+ 1 (list-tally (cdr lst) pred?))]
+      [else
+       (list-tally (cdr lst) pred?)])))
+ 
+; Examples/Tests:
+;;> (list-tally (list 1 2 3 4 5) odd?)
+;;3
+
+;;> (list-tally (list 3 1.2 5/4 "hello" 7) integer?)
+;;2
+
+;;> (list-tally (list 3 1.2 5/4 "hello") integer?)
+;;1
+
+;;> (list-tally (list 14/7 34.5 9.34 122 "hello" "world") (conjoin real? exact?))
+;;2
+
+;;> (list-tally (list "abcd" 'wxyz 34 67/4 3.6) odd?) ;;'pred?' entered is not compatible 
+;;{{IMAGE}} {{IMAGE}} odd?: contract violation                     ;; with all the elements of the list
+;;  expected: integer
+;;  given: "abcd"
+
+;;> (list-tally (list "abcd" 'wxyz 34 67/4 3.6) increment) ;;'pred?' is not a predicate
+;;{{IMAGE}} {{IMAGE}} increment: contract violation
+;;  expected: number?
+;;  given: "abcd"
+;;  in: the 1st argument of
+;;      (-> number? number?)
+;;  contract from: <pkgs>/csc151/numbers.rkt
+;;  blaming: /home/dalmiani/Desktop/Exams/Exam 3/291718.rkt
+;;   (assuming the contract is correct)
+;;  at: <pkgs>/csc151/numbers.rkt:13.5
+
+;; +-----------+------------------------------------------------------
+;; | Problem 2 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Documentation (-1)
+;  - Pretty solid!
+;  - Your postconditions should require that val is at position pos
+;    in result-lst
+;  - Your postconditions do not require that the rest of the elements
+;    in the list are identical to the original list
+;
+; Solution
+;  - Superb!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-08  00:05   00:25   25mins  Documentation Completed
+;                                       Solution Completed
+;                                       Examples/Tests Completed
+; Time Spent: 
+;   25mins
+; Citations:
+
+; Solution:
+
+;;; Procedure:
+;;;   list-set
+;;; Parameters:
+;;;   lst, a list
+;;;   pos, an integer
+;;;   val, a Scheme Value
+;;; Purpose:
+;;;   To replace the value at the 'pos'th index of the list with 'val'
+;;; Produces:
+;;;   result-lst, a list
+;;; Preconditions:
+;;;   'lst' should be a non-empty list to produce proper results
+;;;   * (and (list? lst) (not (null? lst)))
+;;;   'pos' should be a non-negative integer and in range of the indexes of the list entered
+;;;    to produce proper results
+;;;   * (and (integer? pos) (and (>= pos 0) (< pos (length lst))))
+;;;   'val' can be any Scheme Value
+;;; Postconditions:
+;;;   'result-lst' will be a list and will have the same length as 'lst'
+;;;   * (= (length result-lst) (length lst))
+;;;   * if the list enetered is empty, the empty list itself will be returned,
+;;;     no matter what 'pos' and 'val' are.
+;;;   * if 'pos' is out of range, the same list will be returned
+
+(define list-set
+  (lambda (lst pos val)
+    (let kernel ([index 0]
+                 [remaining lst])
+      (cond
+        [(null? remaining)
+         null]
+        [(= index pos)
+         (cons val (cdr remaining))]
+        [else
+         (cons (car remaining) (kernel (+ index 1) (cdr remaining)))]))))
+       
+
+; Examples/Tests:
+;;> (define some-animals (list "aardvark" "baboon" "chinchilla"))
+;;> (list-set some-animals 2 "xerus")
+;;'("aardvark" "baboon" "xerus")
+
+;;> (list-set some-animals 1 "zebra")
+;;'("aardvark" "zebra" "chinchilla")
+
+;;> (list-set some-animals 1 "yak")
+;;'("aardvark" "yak" "chinchilla")
+
+;;> (list-set some-animals 0 "zebra")
+;;'("zebra" "baboon" "chinchilla")
+
+;;> some-animals
+;;'("aardvark" "baboon" "chinchilla")
+
+;;> (list-set (list 1 3 4 "hello" "universe" 'and 'galaxy) 4 'world) 
+;;'(1 3 4 "hello" world and galaxy)
+
+;;> (list-set (list 1 3 4 "hello" "universe" 'and 'galaxy) 7 'world)
+;;'(1 3 4 "hello" "universe" and galaxy)
+
+;;> (list-set (list) 7 'world)
+;;'()
+
+;; +-----------+------------------------------------------------------
+;; | Problem 3 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-08  00:25   01:25   1 hour  First solution completed with a couple of errors
+;   2017-11-10  21:40   22:40   1 hour  A few errors discovered
+;                                       Code deleted and rewritten
+;   2017-11-11  16:00   17:00   1 hour  Code rewriting finished
+;                                       Examples/Tests Completed 
+; Time Spent: 
+;   3 hours
+; Citations:
+
+; Provided code:
+
+;;; Procedure:
+;;;   alphabetically-first-in-bst
+;;; Parameters:
+;;;   bst, a non-empty bst [unverified] 
+;;; Purpose:
+;;;   Find the alphabetically first string in a binary search tree
+;;; Produces:
+;;;   first, a string
+;;; Preconditions:
+;;;   bst contains only strings
+;;; Postconditions:
+;;;   For all strings, str, in bst, (string<=? first str)
+;;; Practica:
+;;;   > (alphabetically-first-in-bst (node "dog" (leaf "cat") (leaf "squirrel")))
+;;;   "cat"
+;;;   > (alphabetically-first-in-bst (node "dog" empty (leaf "squirrel")))
+;;;   ;"dog"
+;;;   > (alphabetically-first-in-bst (node "dog" (node "cat"
+;;;                                                    (leaf "aardvark")
+;;;                                                    (leaf "chincilla"))
+;;;                                        (leaf "squirrel")))
+;;;   "aardvark"
+(define alphabetically-first-in-bst
+  (lambda (bst)
+    (if (empty? (left bst))
+        (contents bst)
+        (alphabetically-first-in-bst (left bst)))))
+
+;;; Procedure:
+;;;   alphabetically-last-in-bst
+;;; Parameters:
+;;;   bst, a non-empty bst [unverified] 
+;;; Purpose:
+;;;   Find the alphabetically last string in a binary search tree
+;;; Produces:
+;;;   last, a string
+;;; Preconditions:
+;;;   bst contains only strings
+;;; Postconditions:
+;;;   For all strings, str, in bst, (string<=? str last)
+;;; Practica:
+;;;   > (alphabetically-last-in-bst (leaf "dog"))
+;;;   "dog"
+;;;   > (alphabetically-last-in-bst (node "dog"
+;;;                                       (leaf "cat")
+;;;                                       (leaf "squirrel")))
+;;;   "squirrel"
+;;;   > (alphabetically-last-in-bst (node "dog"
+;;;                                       (leaf "cat")
+;;;                                       (node "squirrel"
+;;;                                             (leaf "emu")
+;;;                                             (leaf "turtle"))))
+;;;   "turtle"
+;;;   > (alphabetically-last-in-bst (node "dog"
+;;;                                       (leaf "cat")
+;;;                                       empty))
+;;;   "dog"
+(define alphabetically-last-in-bst
+  (lambda (bst)
+    (if (empty? (right bst))
+        (contents bst)
+        (alphabetically-last-in-bst (right bst)))))
+
+; More tree code appears at the end of the exam.  
+
+; Solution:
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great! I like your solution better than the one we hinted at.
+;    Yours is much more efficient. (+1 EC)
+;
+; Examples
+;  - Great!
+; ===================================================================
+(define bst?
+  (lambda (val)
+    (or (empty? val)
+        (and (node? val)
+             (let kernel ([l-bound (alphabetically-first-in-bst val)]
+                          [u-bound (alphabetically-last-in-bst val)]
+                          [root val])
+               (or  (empty? root)
+                    (and (string? l-bound) (string? (contents root)) (string? u-bound) 
+                         (string-ci<=? l-bound (contents root) u-bound)
+                         (kernel l-bound (contents root) (left root))
+                         (kernel (contents root) u-bound (right root)))))))))
+                    
+       
+; Examples/Tests:
+;;> (bst? empty)
+;;#t
+
+;;> (bst? (leaf "zebra"))
+;;#t
+
+;;> (bst? (leaf 5))
+;;#f
+
+;;> (bst? (vector "cat" "dog" "emu"))
+;;#f
+
+;;> (bst? (node "dog"
+;;              (leaf "cat")
+;;              (leaf "squirrel")))
+;;#t
+
+;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (leaf "bison")
+;;                    empty)
+;;              (node "squirrel"
+;;                    (leaf "emu")
+;;                    (leaf "yak"))))
+;;#t
+
+;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (leaf "bison")
+;;                    empty)
+;;              (node "dingo"
+;;                    (leaf "emu")
+;;                    (leaf "yak"))))
+;;#f
+
+;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (leaf "bison")
+;;                    empty)
+;;              (node "squirrel"
+;;                    (leaf "emu")
+;;                    (leaf 7))))
+;;#f
+
+;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (leaf "bison")
+;;                    empty)
+;;              (node "squirrel"
+;;                    (node "emu"
+;;                          empty
+;;                          (leaf "zebra"))
+;;                    (leaf "yak"))))
+;;#f
+
+;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (leaf "bison")
+;;                    (leaf "apple"))
+;;              (node "squirrel"
+;;                    (node "emu"
+;;                          empty
+;;                          (leaf "zebra"))
+;;                    (leaf "yak"))))
+;;                    
+;;#f
+
+;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (node "bison"
+;;                          (leaf "apple")
+;;                           empty)
+;;                    empty)
+;;              (node "squirrel"
+;;                    (leaf "emu")
+;;                    (node "yak"
+;;                          empty
+;;                          (leaf "zebra")))))
+;;     
+;;#t
+
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 4 |
+;; +-----------+
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-08  19:15   19:35   20mins  Solution Completed
+;                                       Examples/Tests Completed
+; Time Spent: 
+;   20mins
+; Citations:
+
+; Solution:
+(define vector-selective-map!
+  (lambda (vec pred? proc)
+    (let kernel! ([pos (- (vector-length vec) 1)])
+      (when (>= pos 0)
+        (let ([val (vector-ref vec pos)])
+          (cond
+            [(pred? val)
+             (vector-set! vec pos (proc val))
+             (kernel! (- pos 1))]
+            [else
+             (kernel! (- pos 1))]))))))
+
+
+; Examples/Tests:
+
+;;> (define numbers (vector 1 2 3 4 5 6 7 8 9))
+;;> (vector-selective-map! numbers odd? square)
+;;> numbers
+;;'#(1 2 9 4 25 6 49 8 81)
+
+;;> (vector-selective-map! numbers (r-s < 7) increment)
+;;> numbers
+;;'#(2 3 9 5 25 7 49 8 81)
+
+;;> (define stuff (vector 'a 2 "bee" (list "c" 2 3) 15 "more"))
+;;> stuff
+;;'#(a 2 "bee" ("c" 2 3) 15 "more")
+
+;;> (vector-selective-map! stuff number? square)
+;;> stuff
+;;'#(a 4 "bee" ("c" 2 3) 225 "more")
+
+;;> (vector-selective-map! stuff (conjoin number? odd?) increment)
+;;> stuff
+;;'#(a 4 "bee" ("c" 2 3) 226 "more")
+
+;;> (vector-selective-map! stuff
+;;                         (lambda (val) 
+;;                           (and (string? val) (char=? (string-ref val 0) #\b)))
+;;                         string-upcase)
+;;> stuff
+;;'#(a 4 "BEE" ("c" 2 3) 226 "more")
+
+;;> (vector-selective-map! stuff string? (r-s substring 1))
+;;> stuff
+;;'#(a 4 "EE" ("c" 2 3) 226 "ore")
+
+;;> (define test-vec (vector "hello" 23.67 13 24/56 'dfg (list 344)))
+;;> (vector-selective-map! test-vec (conjoin integer? odd?) square)
+;;> test-vec
+;;'#("hello" 23.67 169 3/7 dfg (344))
+
+;;> (vector-selective-map! test-vec list? (o square car))
+;;> test-vec
+;;'#("hello" 23.67 169 3/7 dfg 118336)
+
+;;> (vector-selective-map! test-vec odd? square) ;;'odd? is only compatible with integers
+;;{{IMAGE}} {{IMAGE}} odd?: contract violation
+;;  expected: integer
+;;  given: '(344)
+
+;; +-----------+------------------------------------------------------
+;; | Problem 5 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-08  19:35   19:55   20mins  Solution Completed
+;                                       Examples/Tests Completed
+; Time Spent: 
+;   20mins
+; Citations:
+
+; Supplied code:
+
+;;; Procedure:
+;;;   letter->number
+;;; Parameters:
+;;;   letter, a character
+;;; Purpose:
+;;;   Convert a letter to a number in the range 0..25
+;;; Produces:
+;;;   number, an integer in the range 0..25, inclusive.
+;;; Preconditions:
+;;;   * letter is a lowercase or uppercase letter in US English
+;;;   * the encoding system numbers letters in the sensible way, with
+;;;     each letter's encoding one greater than the encoding of the previous
+;;;     letter.  
+;;; Postconditions:
+;;;   if letter is #\a or #\A, number is 0
+;;;   if letter is #\b or #\B, number is 1
+;;;   if letter is #\c or #\C, number is 2
+;;;   and so on and so forth
+(define letter->number
+  (let ([a-num (char->integer #\a)])
+    (lambda (letter)
+      (- (char->integer (char-downcase letter)) a-num))))
+
+;;; Procedure:
+;;;   increment-at!
+;;; Parameters:
+;;;   vec, a vector of numbers
+;;;   pos, an integer
+;;; Purpose:
+;;;   Increment the value at position pos.
+;;; Produces:
+;;;   [Nothing; called for the side effect]
+;;; Preconditions:
+;;;   0 <= pos < (vector-length vec)
+;;; Postconditions:
+;;;   * Let oldval be the value of (vector-ref vec pos) before this procedure
+;;;     is called.
+;;;   * (vector-ref vec pos) = (increment oldval) after this procedure is
+;;;     called.
+(define increment-at!
+  (lambda (vec pos)
+    (vector-set! vec pos (increment (vector-ref vec pos)))))
+
+;;; Procedure:
+;;;   display-tallies
+;;; Parameters:
+;;;   tallies, a vector of 26 integers
+;;; Purpose:
+;;;   Display the result of tally-letters-from-port
+;;; Produces:
+;;;   [Nothing; called for the side effect]
+(define display-tallies
+  (let ([eh (char->integer #\a)])
+    (lambda (tallies)
+      (let kernel ([pos 0])
+        (when (< pos 26)
+          (display (integer->char (+ pos eh)))
+          (display ": ")
+          (display (vector-ref tallies pos))
+          (newline)
+          (kernel (+ pos 1)))))))
+
+; Solution:
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Solution
+;  - Great!
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+(define tally-letters-from-port
+  (lambda (inport)
+    (let ([tallies (make-vector 26 0)])
+      (let kernel ()
+        (let ([nextval (read-char inport)])
+          (cond
+            [(eof-object? nextval)
+             tallies]
+            [(and (char-alphabetic? nextval) (<= (letter->number nextval) 26))
+             (increment-at! tallies (letter->number nextval))
+             (kernel)]
+            [else
+             (kernel)]))))))
+
+; Examples/Tests:
+;;> (tally-letters-from-port (open-input-string ""))
+;;'#(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+
+;;> (tally-letters-from-port (open-input-string "triskaidekaphobia"))
+;;'#(3 1 0 1 1 0 0 1 3 0 2 0 0 0 1 1 0 1 1 1 0 0 0 0 0 0)
+
+;;> (tally-letters-from-port (open-input-string "a one and a 2 and something else!"))
+;;'#(4 0 0 2 4 0 1 1 1 0 0 1 1 4 2 0 0 0 2 1 0 0 0 0 0 0)
+
+;;> (tally-letters-from-port (open-input-string "12 $ abcd efgh ijKlMn OPPqrsTT 78910 'hello 'hello")) 
+;;'#(1 1 1 1 3 1 1 3 1 1 1 5 1 1 3 2 1 1 1 2 0 0 0 0 0 0)
+
+;;> (tally-letters-from-port (open-input-string "12748 39876 849754 094789875 0978509785")) 
+;;'#(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+
+;;> (tally-letters-from-port (open-input-string "12748 39876 849754 A 094789875 0978509785")) 
+;;'#(1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+
+;;> (define jane (open-input-file "/home/dalmiani/Desktop/Assignments/Assignment-5/Book-1.txt"))
+;;> (display-tallies (tally-letters-from-port jane))
+;;a: 26956
+;;b: 5868
+;;c: 9222
+;;d: 13010
+;;e: 43619
+;;f: 8076
+;;g: 6153
+;;h: 20848
+;;i: 22430
+;;j: 469
+;;k: 2169
+;;l: 12023
+;;m: 7892
+;;n: 23036
+;;o: 26475
+;;p: 6199
+;;q: 446
+;;r: 23356
+;;s: 23137
+;;t: 31629
+;;u: 8659
+;;v: 3116
+;;w: 6237
+;;x: 638
+;;y: 6159
+;;z: 208
+
+
+;; +-----------+------------------------------------------------------
+;; | Problem 6 |
+;; +-----------+
+
+; Time Log:
+;   Date        Start   Finish  Elapsed Activity
+;   2017-11-11  17:00   17:25   25mins  Code Reformatted
+;   2017-11-11  23:40   23:50   10mins  Unecessary code cut out
+;                                       Documentation Completed
+;                                       Examples/Tests Completed
+; Time Spent: 
+;   35mins
+; Citations:
+
+; Supplied code
+
+;;;(define    daffy
+;;;(lambda (  puddles        )
+;;;  (let ([  darkwing       (lambda (
+;;;           donald
+;;;           huey
+;;;           count-duckula  ) (let ([
+;;;           louie          (vector-ref
+;;;           donald
+;;;           huey           )][
+;;;           dewey          (vector-ref
+;;;           donald
+;;;           count-duckula  )]) (vector-set!
+;;;           donald
+;;;           huey
+;;;           dewey          )(vector-set!
+;;;           donald
+;;;           count-duckula
+;;;           louie          )))]) (map (l-s
+;;;    apply  darkwing       )(map list (make-list (quotient (vector-length
+;;;           puddles        ) 2)
+;;;           puddles        )(iota (quotient (vector-length
+;;;           puddles        ) 2))(map (r-s - 1) (map (l-s - (vector-length
+;;;           puddles        )) (iota (quotient (vector-length
+;;;           puddles        ) 2)))))))
+;;;           puddles        ))
+
+; Solution:
+
+; ====== INSTRUCTOR COMMENTS ========================================
+; Names of procedure and parameters
+;  - Good choice of names!
+;
+; Code formatting
+;  - Great formatting
+;
+; Code simplification (-2)
+;  - The "apply" statement is unnecessary and should
+;    be replaced by mapping the helper directly
+;  - Could eliminate a map call and the make-list call by
+;    removing the first parameter of the helper procedure
+;  - Could eliminate a map call by composing the decrement and
+;    length subtraction procedures
+;
+; Documentation
+;  - Great!
+;  - Would prefer the reverse postconditions to be more formal though
+;
+; Examples
+;  - Great!
+; ===================================================================
+
+; Documentation:
+;;; Procedure:
+;;;   reverse-vector!
+;;; Parameters:
+;;;   vec, a vector
+;;; Purpose:
+;;;   To reverse the given vector
+;;; Produces:
+;;;   vec, a vector (the same one that was entered)
+;;; Preconditions:
+;;;   'vec' has to be a vector containing scheme values (symbols, strings, numbers, lists, etc.)
+;;;   * (= (vector? vec) #t)
+;;; Postconditions:
+;;;   It returns the same vector 'vec' after manipulating (reversing) it.
+
+(define reverse-vector!
+  (lambda (vec)
+    (let* ([swap (lambda (cur-vec pos1 pos2)
+                   (let ([ele-at-pos1 (vector-ref cur-vec pos1)]
+                         [ele-at-pos2 (vector-ref cur-vec pos2)])
+                     (vector-set! cur-vec pos1 ele-at-pos2)
+                     (vector-set! cur-vec pos2 ele-at-pos1)))]
+           [len (vector-length vec)]
+           [mid (quotient len 2)])
+      (map (section apply swap <>)
+           (map list (make-list mid vec)
+                (iota mid)
+                (map (l-s - (- len 1)) (iota mid)))))
+    vec))
+
+; Examples/Tests:
+
+;;> (reverse-vector! (vector))
+;;'#()
+
+;;> (reverse-vector! (vector 2))
+;;'#(2)
+
+;;> (reverse-vector! (vector 4 5 6 7))
+;;'#(7 6 5 4)
+
+;;> (reverse-vector! (vector "hello" 'world 1 3 4 #\r #f #\T))
+;;'#(#\T #f #\r 4 3 1 world "hello")
+
+;;> (reverse-vector! (vector 'dsvbsfdg "dazfsfrg" 23435 (vector 3 4 5 6) (list 2 3 4 5)))
+;;'#((2 3 4 5) #(3 4 5 6) 23435 "dazfsfrg" dsvbsfdg)
+
+;;> (reverse-vector! (list 3 4))
+;;{{IMAGE}} {{IMAGE}} vector-length: contract violation
+;;  expected: vector?
+;;  given: '(3 4)
+
+;;> (reverse-vector! 3)
+;;{{IMAGE}} {{IMAGE}} vector-length: contract violation
+;;  expected: vector?
+;;  given: 3
+
+; ===================================================================
+
+; +-------------------+----------------------------------------------
+; | Tree Constructors |
+; +-------------------+
+
+;;; Name:
+;;;   empty
+;;; Type:
+;;;   tree
+;;; Value:
+;;;   The empty tree
+(define empty 'empty)
+
+;;; Procedure:
+;;;   leaf
+;;; Parameters:
+;;;   val, a value
+;;; Purpose:
+;;;   Make a leaf node.
+;;; Produces:
+;;;   tree, a tree
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   (contents tree) = val
+;;;   (left tree) = empty
+;;;   (right tree) = empty
+(define leaf
+  (lambda (val)
+    (node val empty empty)))
+
+;;; Procedure:
+;;;   node
+;;; Parameters:
+;;;   val, a value
+;;;   left-subtree, a tree
+;;;   right-subtree, a tree
+;;; Purpose:
+;;;   Create a node in a binary tree.
+;;; Produces:
+;;;   tree, a tree
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   (node? tree) holds.
+;;;   (left tree) = left-subtree.
+;;;   (right tree) = right-subtree.
+;;;   (contents tree) = val.
+(define node
+  (lambda (val left right)
+    (vector 'node val left right)))
+
+; +----------------+-------------------------------------------------
+; | Tree Observers |
+; +----------------+
+
+;;; Procedure:
+;;;   contents
+;;; Parameters:
+;;;   nod, a binary tree node
+;;; Purpose:
+;;;   Extract the contents of node.
+;;; Produces:
+;;;   val, a value
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   (contents (node val l r)) = val
+(define contents
+  (lambda (nod)
+    (cond
+      [(not (node? nod))
+       (error "contents requires a node, received" nod)]
+      [else
+       (vector-ref nod 1)])))
+
+;;; Procedure:
+;;;   left
+;;; Parameters:
+;;;   nod, a binary tree node
+;;; Purpose:
+;;;   Extract the left subtree of nod.
+;;; Produces:
+;;;   l, a tree
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   (left (node val l r)) = l
+(define left
+  (lambda (nod)
+    (cond
+      [(not (node? nod))
+       (error "left requires a node, received" nod)]
+      [else
+       (vector-ref nod 2)])))
+
+;;; Procedure:
+;;;   right
+;;; Parameters:
+;;;   nod, a binary tree node
+;;; Purpose:
+;;;   Extract the right subtree of nod.
+;;; Produces:
+;;;   r, a tree
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   (right (node val l r)) = r;;> (bst? (node "dog"
+;;              (node "cat"
+;;                    (node "bison"
+;;                          (leaf "apple")
+;;                           empty)
+;;                    empty)
+;;              (node "squirrel"
+;;                    (leaf "emu")
+;;                    (node "yak"
+;;                          empty
+;;                          (leaf "zebra")))))
+(define right
+  (lambda (nod)
+    (cond
+      [(not (node? nod))
+       (error "right requires a node, received" nod)]
+      [else
+       (vector-ref nod 3)])))
+
+; +-----------------+------------------------------------------------
+; | Tree Predicates |
+; +-----------------+
+
+;;; Procedure:
+;;;   empty?
+;;; Parameters:
+;;;   val, a Scheme value
+;;; Purpose:
+;;;   Determine if val represents an empty tree.
+;;; Produces:
+;;;   is-empty?, a Boolean 
+;;; Preconditions:
+;;;   [No additional]
+;;; Postconditions:
+;;;   is-empty? is true (#t) if and only if val can be interpreted as
+;;;   the empty tree.
+(define empty? 
+  (section eq? <> empty))
+
+;;; Procedure:
+;;;   leaf?
+;;; Parameters:
+;;;   val, a Scheme value
+;;; Purpose:
+;;;   Determine if val is a tree leaf
+;;; Produces:
+;;;   is-leaf?, a Boolean
+(define leaf?
+  (lambda (val)
+    (and (node? val)
+         (empty? (left val))
+         (empty? (right val)))))
+
+;;; Procedure:
+;;;   node?
+;;; Parameters:
+;;;   val, a Scheme value
+;;; Purpose:
+;;;   Determine if val can be used as a tree node.
+;;; Produces:
+;;;   is-node?, a Boolean
+(define node?
+  (lambda (val)
+    (and (vector? val)
+         (= (vector-length val) 4)
+         (eq? (vector-ref val 0) 'node))))
+
+
+
